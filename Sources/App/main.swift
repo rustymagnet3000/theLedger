@@ -1,17 +1,17 @@
 import Vapor
 import HTTP
 import VaporMySQL
-
+import Foundation
 
 let drop = Droplet(preparations:[User.self], providers: [VaporMySQL.Provider.self])
 
 drop.post("registeruser")     { request in
-    var registeruser: User
+    
+    let username = request.data["username"]?.string
+    var registeruser = User(name: username!)
     
     do {
-        let username = request.data["userName"]?.string
-        registeruser = User(name: username!)
-        try registeruser.save()
+      try registeruser.save()
     }
     catch let error as ValidationErrorProtocol {
         print(error.message)
@@ -20,8 +20,10 @@ drop.post("registeruser")     { request in
     }
     
     return try JSON(node: [
-        "User ID": registeruser.id,
+        "ID": registeruser.id,
+        "Wallet ID": registeruser.walletid,
         "Username": registeruser.name,
+        "Created on": registeruser.readableDate,
         "Result": true
         ])
 }
