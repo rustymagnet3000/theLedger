@@ -7,15 +7,14 @@ let drop = Droplet(preparations:[User.self], providers: [VaporMySQL.Provider.sel
 
 drop.post("registeruser")     { request in
     
-    let username = request.data["username"]?.string
-    var registeruser = User(name: username!)
-    
+    var registeruser: User!
     do {
-      try registeruser.save()
+        var cleaneduser = try RawUser(request: request)
+        registeruser = User(name: (request.data["username"]?.string)!)
+        try registeruser.save()
     }
     catch let error as ValidationErrorProtocol {
         print(error.message)
-        print(request.body)
         throw Abort.custom(status: .badRequest, message: "User registration failed")
     }
     
