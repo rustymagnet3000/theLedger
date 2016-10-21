@@ -2,10 +2,16 @@ import Vapor
 import HTTP
 import VaporMySQL
 import Foundation
+import Auth
 
 let drop = Droplet(preparations:[User.self], providers: [VaporMySQL.Provider.self])
 
 drop.post("registeruser")     { request in
+    
+    guard let credentials = request.auth.header?.basic else {
+        throw Abort.badRequest
+    }
+
     
     var registeruser: User!
     do {

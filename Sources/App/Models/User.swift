@@ -2,6 +2,7 @@ import Vapor
 import Fluent
 import Foundation
 import HTTP
+import Auth
 
 class Name: ValidationSuite {
     static func validate(input value: String) throws {
@@ -80,5 +81,26 @@ extension User {
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter.string(from: date)
+    }
+}
+
+extension User: Auth.User {
+    static func authenticate(credentials: Credentials) throws -> Auth.User {
+        let user: User?
+
+        switch credentials {
+
+        case let apiKey as APIKey:
+            print("you got here")
+            user = try User.find(6)
+            return user!
+        default:
+            let type = type(of: credentials)
+            throw Abort.custom(status: .forbidden, message: "Unsupported credential type: \(type).")
+        }
+    }
+    
+    static func register(credentials: Credentials) throws -> Auth.User {
+         throw Abort.custom(status: .badRequest, message: "Register not supported.")
     }
 }
