@@ -22,12 +22,12 @@ class RawUser {
 }
 
 final class User: Model {
-    var id: Node?
+    public var id: Node?
     var name: String
     var walletid: String
     var createddate: Int
     
-    convenience init(name: String) {
+     convenience init(name: String) {
         let date = Date()
         let walletid = UUID().uuidString
         self.init(name: name, walletid: walletid, createddate: Int(date.timeIntervalSince1970))
@@ -40,6 +40,7 @@ final class User: Model {
     }
     
     init(node: Node, in context: Context) throws {
+
         id = try node.extract("id")
         name = try node.extract("name")
         walletid = try node.extract("walletid")
@@ -56,11 +57,13 @@ final class User: Model {
     }
 }
 
+    
 extension User: Preparation {
     static func prepare(_ database: Database) throws {
+
         try database.create("users") { users in
-            users.id("id")
-            users.string("name")
+            users.id()
+            users.string("name", length: nil, optional: false)
             users.string("walletid")
             users.int("createddate")
         }
@@ -84,23 +87,23 @@ extension User {
     }
 }
 
-extension User: Auth.User {
-    static func authenticate(credentials: Credentials) throws -> Auth.User {
-        let user: User?
-
-        switch credentials {
-
-        case let apiKey as APIKey:
-            print("you got here")
-            user = try User.find(6)
-            return user!
-        default:
-            let type = type(of: credentials)
-            throw Abort.custom(status: .forbidden, message: "Unsupported credential type: \(type).")
-        }
-    }
-    
-    static func register(credentials: Credentials) throws -> Auth.User {
-         throw Abort.custom(status: .badRequest, message: "Register not supported.")
-    }
-}
+//extension User: Auth.User {
+//    static func authenticate(credentials: Credentials) throws -> Auth.User {
+//        let user: User?
+//
+//        switch credentials {
+//
+//        case let apiKey as APIKey:
+//            print("you got here")
+//            user = try User.find(6)
+//            return user!
+//        default:
+//            let type = type(of: credentials)
+//            throw Abort.custom(status: .forbidden, message: "Unsupported credential type: \(type).")
+//        }
+//    }
+//    
+//    static func register(credentials: Credentials) throws -> Auth.User {
+//         throw Abort.custom(status: .badRequest, message: "Register not supported.")
+//    }
+//}

@@ -11,7 +11,6 @@ drop.post("registeruser")     { request in
     guard let credentials = request.auth.header?.basic else {
         throw Abort.badRequest
     }
-
     
     var registeruser: User!
     do {
@@ -25,18 +24,35 @@ drop.post("registeruser")     { request in
     }
     
     return try JSON(node: [
-        "ID": registeruser.id,
-        "Wallet ID": registeruser.walletid,
+        "WalletID": registeruser.walletid,
         "Username": registeruser.name,
-        "Created on": registeruser.readableDate,
+        "CreatedDate": registeruser.readableDate,
         "Result": true
         ])
 }
 
-drop.get(String.self, "allusers")     { request, userSearching in
-    // Mark: name of person performing the search for logging
-//userSearching
-    return "\(userSearching) attempted to list all users."
+drop.get("allusers", String.self)     { request, untrustedWalletID in
+    
+    guard let walletid = untrustedWalletID.string else {
+        throw Abort.badRequest
+    }
+        do {
+            let validatedWalletID = try User.query().filter("walletid", walletid).first()
+
+            let allUsers = try User.query().filter("id", .greaterThanOrEquals, 1).all()
+
+            for i in allUsers {
+                print("Hello \(i.name)")
+            }
+            return try JSON(node: allUsers)
+
+        } catch {
+            throw Abort.custom(status: .badRequest, message: "You are not authorized to search.")
+        }
+}
+
+drop.get("countcharacters", String.self) { request, name in
+    return "The string is: \(name.count) characters long"
 }
 
 drop.get("/") { request in
