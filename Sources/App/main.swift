@@ -3,13 +3,15 @@ import HTTP
 import VaporMySQL
 import Foundation
 import Auth
+import Turnstile
+
 
 let drop = Droplet(preparations:[User.self], providers: [VaporMySQL.Provider.self])
 
 drop.post("registeruser")     { request in
     
     guard let credentials = request.auth.header?.basic else {
-        throw Abort.badRequest
+        throw Abort.custom(status: .unauthorized, message: "Unauthorized")
     }
     
     var registeruser: User!
@@ -37,31 +39,29 @@ drop.get("allusers", String.self)     { request, untrustedWalletID in
         throw Abort.badRequest
     }
         do {
-            let validatedWalletID = try User.query().filter("walletid", walletid).first()
-
+            guard let validatedWalletID = try User.query().filter("walletid", walletid).first() else {
+                    throw Abort.custom(status: .badRequest, message: "You are not authorized to perform this search.")
+                }
+           
             let allUsers = try User.query().filter("id", .greaterThanOrEquals, 1).all()
-
-            for i in allUsers {
-                print("Hello \(i.name)")
-            }
             return try JSON(node: allUsers)
-
-        } catch {
+        }
+        catch {
             throw Abort.custom(status: .badRequest, message: "You are not authorized to search.")
         }
 }
 
-drop.get("countcharacters", String.self) { request, name in
-    return "The string is: \(name.count) characters long"
+drop.get("countcharacters", String.self) { request, unTrustedChars in
+    guard let validatedChars = unTrustedChars.string else {
+        throw Abort.badRequest
+    }
+    return "The string is: \(validatedChars.count) characters long"
 }
 
 drop.get("/") { request in
     return try drop.view.make("welcome.html")
 }
 
-drop.get("plaintext") { request in
-    return "Hello, World!"
-}
 
 drop.middleware.append(SampleMiddleware())
 

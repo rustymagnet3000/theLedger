@@ -3,6 +3,7 @@ import Fluent
 import Foundation
 import HTTP
 import Auth
+import Turnstile
 
 class Name: ValidationSuite {
     static func validate(input value: String) throws {
@@ -26,6 +27,35 @@ final class User: Model {
     var name: String
     var walletid: String
     var createddate: Int
+    
+    /**
+     Authenticates a set of credentials against the User.
+     */
+    static func authenticate(credentials: Credentials) throws -> User {
+        var user: User?
+        
+        switch credentials {
+
+            /**
+             Authenticates via API Keys
+             */
+        case let credentials as APIKey:
+            user = try User.query()
+                .filter("api_key_id", credentials.id)
+                .filter("api_key_secret", credentials.secret)
+                .first()
+            
+        default:
+            throw IncorrectCredentialsError()
+        }
+        
+        if let user = user {
+            return user
+        } else {
+            throw IncorrectCredentialsError()
+        }
+    }
+    
     
      convenience init(name: String) {
         let date = Date()
