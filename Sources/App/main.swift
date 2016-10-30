@@ -61,6 +61,30 @@ drop.get("allusers", String.self)     { request, untrustedWalletID in
     }
 }
 
+drop.get(String.self, "deleteuser")     { request, untrustedUser in
+    
+    // Mark: Input value must be a string. doesn't check for nil.
+    guard let VerifiedUser = untrustedUser.string else {
+        throw Abort.badRequest
+    }
+    
+    do {
+        if let ledgeruser = try User.query().filter("name", VerifiedUser).first() {
+            try ledgeruser.delete()
+            return try JSON(node: [
+                "name": VerifiedUser,
+                "status": "deleted"
+                ])
+        } else {
+            throw Abort.custom(status: .unauthorized, message: "MARK - user not found.")
+        }
+    }
+    catch {
+        throw Abort.custom(status: .unauthorized, message: "We are having a problem. Please try again.")
+    }
+    
+}
+
 drop.get("countcharacters", String.self) { request, unTrustedChars in
     guard let validatedChars = unTrustedChars.string else {
         throw Abort.badRequest
