@@ -1,12 +1,20 @@
 import Vapor
-import HTTP
 import VaporMySQL
 import Foundation
 import Auth
-import Turnstile
+import Fluent
 
+// let auth = AuthMiddleware(user: User.self)
+let database = Database(MemoryDriver())
 
-let drop = Droplet(preparations:[User.self], providers: [VaporMySQL.Provider.self])
+let drop = Droplet(
+  //  database: database,
+  //  availableMiddleware: ["auth": auth],
+    preparations: [User.self],
+    providers: [VaporMySQL.Provider.self]
+)
+
+// let drop = Droplet(preparations:[User.self], providers: [VaporMySQL.Provider.self])
 
 drop.post("registeruser")     { request in
     
@@ -38,17 +46,19 @@ drop.get("allusers", String.self)     { request, untrustedWalletID in
     guard let walletid = untrustedWalletID.string else {
         throw Abort.badRequest
     }
-        do {
-            guard let validatedWalletID = try User.query().filter("walletid", walletid).first() else {
-                    throw Abort.custom(status: .badRequest, message: "You are not authorized to perform this search.")
-                }
-           
-            let allUsers = try User.query().filter("id", .greaterThanOrEquals, 1).all()
-            return try JSON(node: allUsers)
+    
+    do {
+        guard let validatedWalletID = try User.query().filter("walletid", walletid).first() else
+        {
+                throw Abort.custom(status: .badRequest, message: "You are not authorized to perform this search.")
         }
-        catch {
-            throw Abort.custom(status: .badRequest, message: "You are not authorized to search.")
-        }
+       
+        let allUsers = try User.query().filter("id", .greaterThanOrEquals, 1).all()
+        return try JSON(node: allUsers)
+    }
+    catch {
+        throw Abort.custom(status: .badRequest, message: "You are not authorized to search.")
+    }
 }
 
 drop.get("countcharacters", String.self) { request, unTrustedChars in
@@ -65,4 +75,4 @@ drop.get("/") { request in
 
 drop.middleware.append(SampleMiddleware())
 
-drop.serve()
+drop.run()

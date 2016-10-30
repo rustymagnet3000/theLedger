@@ -30,7 +30,7 @@ final class UserGroupController: ResourceRepresentable {
     }
 
     func update(request: Request, item user: User) throws -> ResponseRepresentable {
-        return user.makeJSON()
+        return try user.makeJSON()
     }
 
     func destroy(request: Request, item user: User) throws -> ResponseRepresentable {
