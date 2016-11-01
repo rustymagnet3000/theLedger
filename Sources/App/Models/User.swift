@@ -2,6 +2,7 @@ import Vapor
 import Fluent
 import Foundation
 import HTTP
+import Auth
 
 class Name: ValidationSuite {
     static func validate(input value: String) throws {
@@ -85,5 +86,43 @@ extension User {
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter.string(from: date)
+    }
+}
+
+extension User: Auth.User {
+    static func authenticate(credentials: Credentials) throws -> Auth.User {
+        let user: User?
+        
+        switch credentials {
+        case let id as Identifier:
+            user = try User.find(id.id)
+        case let apiKey as APIKey:
+            user = try User.query().filter("email", apiKey.id).filter("password", apiKey.secret).first()
+        default:
+            throw Abort.custom(status: .badRequest, message: "Invalid credentials.")
+        }
+        
+        guard let u = user else {
+            throw Abort.custom(status: .badRequest, message: "User not found.")
+        }
+        
+        return u
+    }
+    
+    static func register(credentials: Credentials) throws -> Auth.User {
+        let registeruser = User(name: "testRegister")
+        return registeruser
+    }
+}
+
+import HTTP
+
+extension Request {
+    func user() throws -> User {
+        guard let user = try auth.user() as? User else {
+            throw Abort.custom(status: .badRequest, message: "Invalid user type.")
+        }
+        
+        return user
     }
 }

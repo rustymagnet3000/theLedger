@@ -1,44 +1,45 @@
 import Vapor
 import VaporMySQL
 import Foundation
-import Auth
 import Fluent
 
-// let auth = AuthMiddleware(user: User.self)
-let database = Database(MemoryDriver())
+let drop = Droplet()
+try drop.addProvider(VaporMySQL.Provider.self)
+drop.preparations.append(User.self)
+drop.middleware.append(SampleMiddleware())
 
-let drop = Droplet(
-  //  database: database,
-  //  availableMiddleware: ["auth": auth],
-    preparations: [User.self],
-    providers: [VaporMySQL.Provider.self]
-)
-
-// let drop = Droplet(preparations:[User.self], providers: [VaporMySQL.Provider.self])
-
-drop.post("registeruser")     { request in
-    
-    guard let credentials = request.auth.header?.basic else {
-        throw Abort.custom(status: .unauthorized, message: "Unauthorized")
+drop.group("v1") { v1 in
+    v1.get("users") { request in
+        return "works"
     }
     
-    var registeruser: User!
-    do {
-        var cleaneduser = try RawUser(request: request)
-        registeruser = User(name: (request.data["username"]?.string)!)
-        try registeruser.save()
+    v1.post("registeruser")     { request in
+        
+        guard let credentials = request.auth.header?.basic else {
+            throw Abort.custom(status: .unauthorized, message: "Unauthorized - No basic auth creds")
+        }
+        
+        //   let key = APIKey(id: credentials.id, secret: credentials.secret)
+        
+        var registeruser: User!
+        do {
+            //       var result = try request.auth.header(key)
+            var cleaneduser = try RawUser(request: request)
+            registeruser = User(name: (request.data["username"]?.string)!)
+            try registeruser.save()
+        }
+        catch let error as ValidationErrorProtocol {
+            print(error.message)
+            throw Abort.custom(status: .badRequest, message: "User registration failed")
+        }
+        
+        return try JSON(node: [
+            "WalletID": registeruser.walletid,
+            "Username": registeruser.name,
+            "CreatedDate": registeruser.readableDate,
+            "Result": true
+            ])
     }
-    catch let error as ValidationErrorProtocol {
-        print(error.message)
-        throw Abort.custom(status: .badRequest, message: "User registration failed")
-    }
-    
-    return try JSON(node: [
-        "WalletID": registeruser.walletid,
-        "Username": registeruser.name,
-        "CreatedDate": registeruser.readableDate,
-        "Result": true
-        ])
 }
 
 drop.get("allusers", String.self)     { request, untrustedWalletID in
@@ -73,7 +74,7 @@ drop.get(String.self, "deleteuser")     { request, untrustedUser in
             try ledgeruser.delete()
             return try JSON(node: [
                 "name": VerifiedUser,
-                "status": "deleted"
+                "status": true
                 ])
         } else {
             throw Abort.custom(status: .unauthorized, message: "MARK - user not found.")
@@ -95,8 +96,5 @@ drop.get("countcharacters", String.self) { request, unTrustedChars in
 drop.get("/") { request in
     return try drop.view.make("welcome.html")
 }
-
-
-drop.middleware.append(SampleMiddleware())
 
 drop.run()
