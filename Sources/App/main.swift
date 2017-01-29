@@ -3,14 +3,30 @@ import VaporMySQL
 import Foundation
 import Fluent
 
+
 let drop = Droplet()
 try drop.addProvider(VaporMySQL.Provider.self)
 drop.preparations.append(User.self)
 drop.middleware.append(SampleMiddleware())
 
+
 drop.group("v1") { v1 in
+    
     v1.get("users") { request in
         return "works"
+    }
+    
+    v1.get("healthcheck") { request in
+        return JSON("Server alive")
+    }
+    
+    v1.post("sendsecret") { request in
+    
+        guard let encrypted_message = request.data["encrypted_message"] else {
+            throw Abort.custom(status: .badRequest, message: "Please enter a secret")
+        }
+
+        return JSON("Server alive")
     }
     
     v1.post("registeruser")     { request in
@@ -40,50 +56,60 @@ drop.group("v1") { v1 in
             "Result": true
             ])
     }
-}
 
-drop.get("allusers", String.self)     { request, untrustedWalletID in
-    
-    guard let walletid = untrustedWalletID.string else {
-        throw Abort.badRequest
+    v1.post("buy") { request in
+        
+        
+        return "Buy me a drink"
     }
     
-    do {
-        guard let validatedWalletID = try User.query().filter("walletid", walletid).first() else
-        {
+    
+    v1.get("allusers", String.self)     { request, untrustedWalletID in
+        
+        guard let walletid = untrustedWalletID.string else {
+            throw Abort.badRequest
+        }
+        
+        do {
+            guard let validatedWalletID = try User.query().filter("walletid", walletid).first() else
+            {
                 throw Abort.custom(status: .badRequest, message: "You are not authorized to perform this search.")
+            }
+            
+            let allUsers = try User.query().filter("id", .greaterThanOrEquals, 1).all()
+            return try JSON(node: allUsers)
         }
-       
-        let allUsers = try User.query().filter("id", .greaterThanOrEquals, 1).all()
-        return try JSON(node: allUsers)
-    }
-    catch {
-        throw Abort.custom(status: .badRequest, message: "You are not authorized to search.")
-    }
-}
-
-drop.get(String.self, "deleteuser")     { request, untrustedUser in
-    
-    // Mark: Input value must be a string. doesn't check for nil.
-    guard let VerifiedUser = untrustedUser.string else {
-        throw Abort.badRequest
-    }
-    
-    do {
-        if let ledgeruser = try User.query().filter("name", VerifiedUser).first() {
-            try ledgeruser.delete()
-            return try JSON(node: [
-                "name": VerifiedUser,
-                "status": true
-                ])
-        } else {
-            throw Abort.custom(status: .unauthorized, message: "MARK - user not found.")
+        catch {
+            throw Abort.custom(status: .badRequest, message: "You are not authorized to search.")
         }
     }
-    catch {
-        throw Abort.custom(status: .unauthorized, message: "We are having a problem. Please try again.")
-    }
     
+    v1.get(String.self, "deleteuser")     { request, rawUsername in
+        
+        do {
+            guard let verifiedUser = rawUsername.string else {
+                throw Abort.badRequest
+            }
+            guard let usernameExists = try User.query().filter("name", verifiedUser).first() else
+            {
+                throw Abort.custom(status: .badRequest, message: "You are not authorized to perform this search.")
+            }
+            
+            if let ledgeruser = try User.query().filter("name", usernameExists.name).first() {
+                try ledgeruser.delete()
+                return try JSON(node: [
+                    "name": verifiedUser,
+                    "status": true
+                    ])
+            } else {
+                throw Abort.custom(status: .unauthorized, message: "MARK - user not found.")
+            }
+        }
+        catch {
+            throw Abort.custom(status: .unauthorized, message: "We are having a problem. Please try again.")
+        }
+        
+    }
 }
 
 drop.get("countcharacters", String.self) { request, unTrustedChars in
