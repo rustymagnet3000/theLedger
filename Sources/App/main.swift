@@ -9,6 +9,8 @@ try drop.addProvider(VaporMySQL.Provider.self)
 drop.preparations.append(User.self)
 drop.middleware.append(SampleMiddleware())
 
+let ledger = LedgerController()
+ledger.addRoutes(drop: drop)
 
 drop.group("v1") { v1 in
     
@@ -112,12 +114,7 @@ drop.group("v1") { v1 in
     }
 }
 
-drop.get("countcharacters", String.self) { request, unTrustedChars in
-    guard let validatedChars = unTrustedChars.string else {
-        throw Abort.badRequest
-    }
-    return "The string is: \(validatedChars.count) characters long"
-}
+
 
 drop.get("/") { request in
     return try drop.view.make("welcome.html")
