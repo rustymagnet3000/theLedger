@@ -1,6 +1,8 @@
 import Vapor
 import Fluent
 import Foundation
+import HTTP
+
 
 final class Ledger: Model {
     
@@ -39,16 +41,15 @@ final class Ledger: Model {
     }
 }
 
-
 extension Ledger: Preparation {
     static func prepare(_ database: Database) throws {
-        
-        try database.create("ledger") { users in
-            users.id()
-            users.string("drinker", length: nil, optional: false)
-            users.string("buyer", length: nil, optional: false)
-            users.int("createddate")
-        }
+
+            try database.create("ledger") { ledger in
+                ledger.id()
+                ledger.string("drinker")
+                ledger.string("buyer")
+                ledger.int("createddate")
+            }
     }
     
     static func revert(_ database: Database) throws {

@@ -3,25 +3,22 @@ import VaporMySQL
 import Foundation
 import Fluent
 
-
 let drop = Droplet()
 try drop.addProvider(VaporMySQL.Provider.self)
 drop.preparations.append(User.self)
-drop.middleware.append(SampleMiddleware())
+drop.preparations.append(Ledger.self)
+
+drop.middleware.append(VersionMiddleware())
+drop.middleware.append(FooErrorMiddleware())
 
 let ledger = LedgerController()
 ledger.addRoutes(drop: drop)
+ledger.addSmokeRoutes(drop: drop)
+
+
 
 drop.group("v1") { v1 in
-    
-    v1.get("users") { request in
-        return "works"
-    }
-    
-    v1.get("healthcheck") { request in
-        return JSON("Server alive")
-    }
-    
+        
     v1.post("sendsecret") { request in
     
         guard let encrypted_message = request.data["encrypted_message"] else {
@@ -45,6 +42,7 @@ drop.group("v1") { v1 in
             var cleaneduser = try RawUser(request: request)
             registeruser = User(name: (request.data["username"]?.string)!)
             try registeruser.save()
+            
         }
         catch let error as ValidationErrorProtocol {
             print(error.message)
@@ -59,13 +57,6 @@ drop.group("v1") { v1 in
             ])
     }
 
-    v1.post("buy") { request in
-        
-        
-        return "Buy me a drink"
-    }
-    
-    
     v1.get("allusers", String.self)     { request, untrustedWalletID in
         
         guard let walletid = untrustedWalletID.string else {
@@ -113,7 +104,6 @@ drop.group("v1") { v1 in
         
     }
 }
-
 
 
 drop.get("/") { request in
