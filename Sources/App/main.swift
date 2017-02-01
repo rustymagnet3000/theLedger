@@ -4,9 +4,11 @@ import Foundation
 import Fluent
 
 let drop = Droplet()
-try drop.addProvider(VaporMySQL.Provider.self)
+
 drop.preparations.append(User.self)
 drop.preparations.append(Ledger.self)
+
+try drop.addProvider(VaporMySQL.Provider.self)
 
 drop.middleware.append(VersionMiddleware())
 drop.middleware.append(FooErrorMiddleware())

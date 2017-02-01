@@ -5,7 +5,7 @@ import HTTP
 
 
 final class Ledger: Model {
-    
+    static var entity = "ledger"
     public var id: Node?
     var buyer: String
     var drinker: String
