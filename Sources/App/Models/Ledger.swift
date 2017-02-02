@@ -13,19 +13,19 @@ final class Ledger: Model {
     var buyer: String
     var drinker: String
     var createddate: Int
-    var ledgertype: LedgerEntry
-    var exists: Bool = false // suppresses Vapor 1.1 warning
+    var ledgerentry: LedgerEntry
+    var exists: Bool = false
     
-    convenience init(buyer: String, drinker: String) {
+    convenience init(buyer: String, drinker: String, ledgerentry: LedgerEntry) {
         let date = Date()
-        self.init(buyer: buyer, drinker: drinker, createddate: Int(date.timeIntervalSince1970), ledgertype: .Purchased)
+        self.init(buyer: buyer, drinker: drinker, createddate: Int(date.timeIntervalSince1970), ledgerentry: ledgerentry)
     }
     
-    init(buyer: String, drinker: String, createddate: Int, ledgertype: LedgerEntry) {
+    init(buyer: String, drinker: String, createddate: Int, ledgerentry: LedgerEntry) {
         self.buyer = buyer
         self.drinker = drinker
         self.createddate = createddate
-        self.ledgertype = LedgerEntry(rawValue: ledgertype.rawValue)!
+        self.ledgerentry = ledgerentry
     }
     
     init(node: Node, in context: Context) throws {
@@ -33,7 +33,7 @@ final class Ledger: Model {
         id = try node.extract("id")
         buyer = try node.extract("buyer")
         drinker = try node.extract("drinker")
-        ledgertype = try node.extract("ledgertype")
+        ledgerentry = LedgerEntry(rawValue: try node.extract("ledgerentry"))!
         createddate = try node.extract("createddate")
     }
     
@@ -42,7 +42,7 @@ final class Ledger: Model {
             "id": id,
             "drinker": drinker,
             "buyer": buyer,
-            "ledgertype": ledgertype,
+            "ledgerentry": ledgerentry.rawValue,
             "createddate": createddate
             ])
     }
@@ -55,7 +55,7 @@ extension Ledger: Preparation {
                 ledger.id()
                 ledger.string("drinker")
                 ledger.string("buyer")
-                ledger.int("ledgertype")
+                ledger.int("ledgerentry")
                 ledger.int("createddate")
             }
     }

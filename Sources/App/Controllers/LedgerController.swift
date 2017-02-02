@@ -27,7 +27,7 @@ final class LedgerController {
         do {
             let buyer = request.data["buyer"]?.string
             let drinker = request.data["drinker"]?.string
-            ledgerEntry = Ledger(buyer: buyer!, drinker: drinker!)
+            ledgerEntry = Ledger(buyer: buyer!, drinker: drinker!, ledgerentry: .Purchased)
             
             try ledgerEntry.save()
         }
