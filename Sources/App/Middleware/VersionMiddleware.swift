@@ -11,7 +11,7 @@ final class VersionMiddleware: Middleware {
     }
 }
 
-class FooErrorMiddleware: Middleware {
+class LedgerErrorMiddleware: Middleware {
 
 	func respond(to request: Request, chainingTo next: Responder) throws -> Response {
 
@@ -21,16 +21,28 @@ class FooErrorMiddleware: Middleware {
         
             return response
         }
-        catch FooError.FooServiceUnavailable {
+        catch LedgerError.ServiceUnavailable {
             throw Abort.custom(
                 status: .serviceUnavailable,
                 message: "Sorry, we were unable to query the Foo service."
             )
         }
-        catch FooError.FooBadRequest {
+        catch LedgerError.BadRequest {
             throw Abort.custom(
                 status: .badRequest,
                 message: "Sorry, bad request."
+            )
+        }
+        catch LedgerError.Unauthorized {
+            throw Abort.custom(
+                status: .unauthorized,
+                message: "Sorry, you are not authorized."
+            )
+        }
+        catch LedgerError.DatabaseError {
+            throw Abort.custom(
+                status: .internalServerError,
+                message: "Sorry, please contact system admin."
             )
         }
     }

@@ -11,7 +11,7 @@ drop.preparations.append(Ledger.self)
 try drop.addProvider(VaporMySQL.Provider.self)
 
 drop.middleware.append(VersionMiddleware())
-drop.middleware.append(FooErrorMiddleware())
+drop.middleware.append(LedgerErrorMiddleware())
 
 let ledger = LedgerController()
 ledger.addRoutes(drop: drop)
@@ -24,7 +24,7 @@ drop.group("v1") { v1 in
     v1.post("sendsecret") { request in
     
         guard let encrypted_message = request.data["encrypted_message"] else {
-            throw Abort.custom(status: .badRequest, message: "Please enter a secret")
+            throw LedgerError.BadRequest
         }
 
         return JSON("Server alive")
@@ -33,7 +33,7 @@ drop.group("v1") { v1 in
     v1.post("registeruser")     { request in
         
         guard let credentials = request.auth.header?.basic else {
-            throw Abort.custom(status: .unauthorized, message: "Unauthorized - No basic auth creds")
+            throw LedgerError.Unauthorized
         }
         
         //   let key = APIKey(id: credentials.id, secret: credentials.secret)
@@ -48,7 +48,7 @@ drop.group("v1") { v1 in
         }
         catch let error as ValidationErrorProtocol {
             print(error.message)
-            throw Abort.custom(status: .badRequest, message: "User registration failed")
+            throw LedgerError.DatabaseError
         }
         
         return try JSON(node: [
@@ -75,7 +75,7 @@ drop.group("v1") { v1 in
             return try JSON(node: allUsers)
         }
         catch {
-            throw Abort.custom(status: .badRequest, message: "You are not authorized to search.")
+            throw LedgerError.DatabaseError
         }
     }
     
@@ -83,11 +83,11 @@ drop.group("v1") { v1 in
         
         do {
             guard let verifiedUser = rawUsername.string else {
-                throw Abort.badRequest
+                throw LedgerError.BadRequest
             }
             guard let usernameExists = try User.query().filter("name", verifiedUser).first() else
             {
-                throw Abort.custom(status: .badRequest, message: "You are not authorized to perform this search.")
+                throw LedgerError.Unauthorized
             }
             
             if let ledgeruser = try User.query().filter("name", usernameExists.name).first() {
@@ -101,7 +101,7 @@ drop.group("v1") { v1 in
             }
         }
         catch {
-            throw Abort.custom(status: .unauthorized, message: "We are having a problem. Please try again.")
+            throw LedgerError.Unauthorized
         }
         
     }

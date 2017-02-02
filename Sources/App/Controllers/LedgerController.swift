@@ -4,12 +4,7 @@ import Foundation
 import Fluent
 import HTTP
 
-enum FooError: Error {
-    case FooServiceUnavailable
-    case FooBadRequest
-    case PageNotFound
-    case LedgerError
-}
+
 
 final class LedgerController {
  
@@ -37,9 +32,9 @@ final class LedgerController {
             try ledgerEntry.save()
         }
             
-        catch let error as ValidationErrorProtocol {
+        catch {
             print(error)
-            throw FooError.LedgerError
+            throw LedgerError.DatabaseError
         }
         
         return try JSON(node: [
@@ -55,7 +50,7 @@ final class LedgerController {
             let version = try db.raw("select version()")
             return try JSON(node: version)
         } else {
-            throw FooError.FooServiceUnavailable
+            throw LedgerError.ServiceUnavailable
         }
     }
     
@@ -67,7 +62,7 @@ final class LedgerController {
     func count(request: Request) throws -> ResponseRepresentable {
 
         guard let chars_to_count = request.data["characters"]?.string else {
-            throw FooError.FooBadRequest
+            throw LedgerError.BadRequest
         }
         
         let validated_chars_to_count = try chars_to_count.validated(by: Count.min(5) && OnlyAlphanumeric.self)

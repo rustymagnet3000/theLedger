@@ -3,6 +3,9 @@ import Fluent
 import Foundation
 import HTTP
 
+enum LedgerEntry: Int {
+    case Purchased = 0, Disputed, Refunded
+}
 
 final class Ledger: Model {
     static var entity = "ledger"
@@ -10,17 +13,19 @@ final class Ledger: Model {
     var buyer: String
     var drinker: String
     var createddate: Int
+    var ledgertype: LedgerEntry
     var exists: Bool = false // suppresses Vapor 1.1 warning
     
     convenience init(buyer: String, drinker: String) {
         let date = Date()
-        self.init(buyer: buyer, drinker: drinker, createddate: Int(date.timeIntervalSince1970))
+        self.init(buyer: buyer, drinker: drinker, createddate: Int(date.timeIntervalSince1970), ledgertype: .Purchased)
     }
     
-    init(buyer: String, drinker: String, createddate: Int) {
+    init(buyer: String, drinker: String, createddate: Int, ledgertype: LedgerEntry) {
         self.buyer = buyer
         self.drinker = drinker
         self.createddate = createddate
+        self.ledgertype = LedgerEntry(rawValue: ledgertype.rawValue)!
     }
     
     init(node: Node, in context: Context) throws {
@@ -28,6 +33,7 @@ final class Ledger: Model {
         id = try node.extract("id")
         buyer = try node.extract("buyer")
         drinker = try node.extract("drinker")
+        ledgertype = try node.extract("ledgertype")
         createddate = try node.extract("createddate")
     }
     
@@ -36,6 +42,7 @@ final class Ledger: Model {
             "id": id,
             "drinker": drinker,
             "buyer": buyer,
+            "ledgertype": ledgertype,
             "createddate": createddate
             ])
     }
@@ -48,6 +55,7 @@ extension Ledger: Preparation {
                 ledger.id()
                 ledger.string("drinker")
                 ledger.string("buyer")
+                ledger.int("ledgertype")
                 ledger.int("createddate")
             }
     }

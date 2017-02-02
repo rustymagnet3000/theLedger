@@ -22,7 +22,7 @@ class RawUser {
 }
 
 final class User: Model {
-
+    static var entity = "ledgeruser"
     public var id: Node?
     var name: String
     var walletid: String
@@ -58,12 +58,11 @@ final class User: Model {
             ])
     }
 }
-
     
 extension User: Preparation {
     static func prepare(_ database: Database) throws {
 
-        try database.create("users") { users in
+        try database.create(entity) { users in
             users.id()
             users.string("name", length: nil, optional: false)
             users.string("walletid")
@@ -72,7 +71,7 @@ extension User: Preparation {
     }
     
     static func revert(_ database: Database) throws {
-        try database.delete("users")
+        try database.delete(entity)
     }
 }
 
