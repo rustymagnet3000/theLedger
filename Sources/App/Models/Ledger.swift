@@ -5,6 +5,30 @@ import HTTP
 
 enum LedgerEntry: Int {
     case Purchased = 0, Disputed, Refunded
+    
+    func simpleDescription() -> String {
+        switch self {
+        case .Purchased:
+            return "purchase"
+        case .Disputed:
+            return "dispute"
+        case .Refunded:
+            return "refund"
+        }
+    }
+    
+}
+
+extension LedgerEntry: NodeInitializable {
+    
+    init(node: Node, in context: Context) throws {
+
+    guard let rawValue = node.int, let value = LedgerEntry(rawValue: rawValue) else {
+            throw NodeError.unableToConvert(node: node, expected: "int")
+        }
+        
+        self = value
+    }
 }
 
 final class Ledger: Model {
@@ -33,7 +57,7 @@ final class Ledger: Model {
         id = try node.extract("id")
         buyer = try node.extract("buyer")
         drinker = try node.extract("drinker")
-        ledgerentry = LedgerEntry(rawValue: try node.extract("ledgerentry"))!
+        ledgerentry = try node.extract("ledgerentry")
         createddate = try node.extract("createddate")
     }
     
@@ -48,6 +72,8 @@ final class Ledger: Model {
     }
 }
 
+
+        
 extension Ledger: Preparation {
     static func prepare(_ database: Database) throws {
 

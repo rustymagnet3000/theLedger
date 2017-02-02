@@ -41,6 +41,7 @@ final class LedgerController {
             "buyer": ledgerEntry.buyer,
             "drinker": ledgerEntry.drinker,
             "CreatedDate": ledgerEntry.readableDate,
+            "Entry type":  ledgerEntry.ledgerentry.simpleDescription(),
             ])
     }
     
