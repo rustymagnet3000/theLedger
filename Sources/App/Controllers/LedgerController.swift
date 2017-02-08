@@ -16,6 +16,36 @@ final class LedgerController {
     func addRoutes(drop: Droplet){
         let v2 = drop.grouped("v2")
         v2.post("buy", handler: buy)
+        v2.get("transactions", handler: transcations)
+    }
+    
+    
+    func transcations(request: Request) throws -> ResponseRepresentable {
+        
+        let history_purchases: [Ledger]
+        
+        guard let customer = request.query?["customer_walletid"]?.string else {
+            throw LedgerError.BadRequest
+        }
+        
+        do {
+            let customer_in_db = try User.query().filter("walletid", customer).first()
+            guard customer_in_db != nil else { throw LedgerError.Unauthorized }
+        }
+        catch {
+            throw LedgerError.Unauthorized
+        }
+
+        do {
+            history_purchases = try Ledger.query().filter("buyer", .equals, customer).all()
+        }
+        catch {
+            throw Abort.custom(status: .badRequest, message: "Problem retrieving transactions.")
+        }
+        
+
+        return try JSON(node: history_purchases)
+
     }
     
     func buy(request: Request) throws -> ResponseRepresentable {
