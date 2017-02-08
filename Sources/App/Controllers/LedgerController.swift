@@ -4,8 +4,6 @@ import Foundation
 import Fluent
 import HTTP
 
-
-
 final class LedgerController {
  
     func addSmokeRoutes(drop: Droplet){
@@ -22,26 +20,51 @@ final class LedgerController {
     
     func buy(request: Request) throws -> ResponseRepresentable {
       
-        var ledgerEntry: Ledger
+        let buyer_in_db: User?
+        
+        guard let buyer = request.data["buyer_walletid"]?.string else {
+            throw LedgerError.BadRequest
+        }
         
         do {
-            let buyer = request.data["buyer"]?.string
-            let drinker = request.data["drinker"]?.string
-            ledgerEntry = Ledger(buyer: buyer!, drinker: drinker!, ledgerentry: .Purchased)
-            
-            try ledgerEntry.save()
+            buyer_in_db = try User.query().filter("walletid", buyer).first()
+            guard buyer_in_db != nil else { throw LedgerError.Unauthorized }
         }
-            
         catch {
-            print(error)
-            throw LedgerError.DatabaseError
+            throw LedgerError.Unauthorized
+        }
+    
+        guard let drinker_array = request.data["drinker_walletid"]?.array else {
+            throw LedgerError.BadRequest
+        }
+    
+        for unknown_drinker in drinker_array {
+
+            guard let drinker = unknown_drinker.string else { throw LedgerError.BadRequest }
+            if drinker.isEmpty { throw LedgerError.BadRequest } /* validate parameter is present but not null */
+            if buyer == drinker { throw LedgerError.Unauthorized } /* validate buyer not also drinker */
+            
+            do {
+                let drinker_in_db: User? = try User.query().filter("walletid", drinker).first()
+                guard drinker_in_db != nil else { throw LedgerError.Unauthorized }
+            }
+            catch {
+                throw LedgerError.Unauthorized
+            }
+            
+            do {
+                var ledgerRecord = Ledger(buyer: buyer, drinker: drinker, ledgerentry: .Purchased, numberofdrinks: 1)
+                try ledgerRecord.save()
+            }
+    
+            catch {
+                throw LedgerError.DatabaseError
+            }
         }
         
         return try JSON(node: [
-            "buyer": ledgerEntry.buyer,
-            "drinker": ledgerEntry.drinker,
-            "CreatedDate": ledgerEntry.readableDate,
-            "Entry type":  ledgerEntry.ledgerentry.simpleDescription(),
+            "buyer": buyer_in_db?.name,
+            "drinkers": "\(drinker_array.count)"
             ])
     }
     
@@ -70,4 +93,5 @@ final class LedgerController {
 
         return "The string is: \(validated_chars_to_count.value.count) characters long"
     }
+
 }

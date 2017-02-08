@@ -3,34 +3,6 @@ import Fluent
 import Foundation
 import HTTP
 
-enum LedgerEntry: Int {
-    case Purchased = 0, Disputed, Refunded
-    
-    func simpleDescription() -> String {
-        switch self {
-        case .Purchased:
-            return "purchase"
-        case .Disputed:
-            return "dispute"
-        case .Refunded:
-            return "refund"
-        }
-    }
-    
-}
-
-extension LedgerEntry: NodeInitializable {
-    
-    init(node: Node, in context: Context) throws {
-
-    guard let rawValue = node.int, let value = LedgerEntry(rawValue: rawValue) else {
-            throw NodeError.unableToConvert(node: node, expected: "int")
-        }
-        
-        self = value
-    }
-}
-
 final class Ledger: Model {
     static var entity = "ledger"
     public var id: Node?
@@ -38,18 +10,20 @@ final class Ledger: Model {
     var drinker: String
     var createddate: Int
     var ledgerentry: LedgerEntry
+    var numberofdrinks: Int
     var exists: Bool = false
     
-    convenience init(buyer: String, drinker: String, ledgerentry: LedgerEntry) {
+    convenience init(buyer: String, drinker: String, ledgerentry: LedgerEntry, numberofdrinks: Int) {
         let date = Date()
-        self.init(buyer: buyer, drinker: drinker, createddate: Int(date.timeIntervalSince1970), ledgerentry: ledgerentry)
+        self.init(buyer: buyer, drinker: drinker, createddate: Int(date.timeIntervalSince1970), ledgerentry: ledgerentry, numberofdrinks: numberofdrinks)
     }
     
-    init(buyer: String, drinker: String, createddate: Int, ledgerentry: LedgerEntry) {
+    init(buyer: String, drinker: String, createddate: Int, ledgerentry: LedgerEntry, numberofdrinks: Int) {
         self.buyer = buyer
         self.drinker = drinker
         self.createddate = createddate
         self.ledgerentry = ledgerentry
+        self.numberofdrinks = numberofdrinks
     }
     
     init(node: Node, in context: Context) throws {
@@ -59,6 +33,7 @@ final class Ledger: Model {
         drinker = try node.extract("drinker")
         ledgerentry = try node.extract("ledgerentry")
         createddate = try node.extract("createddate")
+        numberofdrinks = try node.extract("numberofdrinks")
     }
     
     func makeNode(context: Context) throws -> Node {
@@ -67,7 +42,8 @@ final class Ledger: Model {
             "drinker": drinker,
             "buyer": buyer,
             "ledgerentry": ledgerentry.rawValue,
-            "createddate": createddate
+            "createddate": createddate,
+            "numberofdrinks": numberofdrinks
             ])
     }
 }
@@ -83,6 +59,7 @@ extension Ledger: Preparation {
                 ledger.string("buyer")
                 ledger.int("ledgerentry")
                 ledger.int("createddate")
+                ledger.int("numberofdrinks")
             }
     }
     
