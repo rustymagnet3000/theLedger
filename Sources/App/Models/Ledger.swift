@@ -6,22 +6,18 @@ import HTTP
 final class Ledger: Model {
     static var entity = "ledger"
     public var id: Node?
-    var buyer: String
+    var buyer: Node?
     var drinker: String
     var createddate: Int
     var ledgerentry: LedgerEntry
     var numberofdrinks: Int
     var exists: Bool = false
     
-    convenience init(buyer: String, drinker: String, ledgerentry: LedgerEntry, numberofdrinks: Int) {
+    init(buyer: Node? = nil, drinker: String, createddate: Int, ledgerentry: LedgerEntry, numberofdrinks: Int) {
         let date = Date()
-        self.init(buyer: buyer, drinker: drinker, createddate: Int(date.timeIntervalSince1970), ledgerentry: ledgerentry, numberofdrinks: numberofdrinks)
-    }
-    
-    init(buyer: String, drinker: String, createddate: Int, ledgerentry: LedgerEntry, numberofdrinks: Int) {
         self.buyer = buyer
         self.drinker = drinker
-        self.createddate = createddate
+        self.createddate = Int(date.timeIntervalSince1970)
         self.ledgerentry = ledgerentry
         self.numberofdrinks = numberofdrinks
     }
@@ -48,15 +44,13 @@ final class Ledger: Model {
     }
 }
 
-
-        
 extension Ledger: Preparation {
     static func prepare(_ database: Database) throws {
 
             try database.create("ledger") { ledger in
                 ledger.id()
+                ledger.parent(User.self, optional: false)
                 ledger.string("drinker")
-                ledger.string("buyer")
                 ledger.int("ledgerentry")
                 ledger.int("createddate")
                 ledger.int("numberofdrinks")

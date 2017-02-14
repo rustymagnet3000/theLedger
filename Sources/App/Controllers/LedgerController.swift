@@ -17,8 +17,20 @@ final class LedgerController {
         let v2 = drop.grouped("v2")
         v2.post("buy", handler: buy)
         v2.get("transactions", handler: transcations)
+        v2.get("ledger", handler: ledger)
+            
     }
     
+    func ledger(request: Request) throws -> ResponseRepresentable {
+ 
+        let users = try [
+            ["name": "bob", "id": "1111"].makeNode(),
+            ["name": "alice", "id": "2222"].makeNode(),
+            ["name": "yves", "id": "3333"].makeNode()
+        ].makeNode()
+        
+        return try drop.view.make("ledger", Node(node: ["users": users]))
+    }
     
     func transcations(request: Request) throws -> ResponseRepresentable {
         
@@ -81,9 +93,11 @@ final class LedgerController {
             catch {
                 throw LedgerError.Unauthorized
             }
-            
+        
+            let node: Node? = "7D60EB8D-9941-4BBE-BE34-376499CFA802"
             do {
-                var ledgerRecord = Ledger(buyer: buyer, drinker: drinker, ledgerentry: .Purchased, numberofdrinks: 1)
+                var ledgerRecord = Ledger(buyer: node, drinker: drinker, createddate: 0, ledgerentry: .Purchased, numberofdrinks: 1)
+                
                 try ledgerRecord.save()
             }
     

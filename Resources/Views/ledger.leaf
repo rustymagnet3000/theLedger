@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Ledger</title>
+    </head>
+    <body>
+        #loop(users, "user") {
+            <h1>Ledger Entries #(user.name)</h1>
+            }
+    </body>
+</html>
