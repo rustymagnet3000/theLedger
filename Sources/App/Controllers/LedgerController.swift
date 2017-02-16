@@ -18,7 +18,6 @@ final class LedgerController {
         v2.post("buy", handler: buy)
         v2.get("transactions", handler: transcations)
         v2.get("ledger", handler: ledger)
-            
     }
     
     func ledger(request: Request) throws -> ResponseRepresentable {
@@ -133,9 +132,9 @@ final class LedgerController {
             throw LedgerError.BadRequest
         }
         
-        let validated_chars_to_count = try chars_to_count.validated(by: Count.min(5) && OnlyAlphanumeric.self)
+ //       let validated_chars_to_count = try chars_to_count.validated(by: Count.min(5) && OnlyAlphanumeric.self)
 
-        return "The string is: \(validated_chars_to_count.value.count) characters long"
+        return "The string is: \(chars_to_count.count) characters long"
     }
 
 }
