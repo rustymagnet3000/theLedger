@@ -10,7 +10,8 @@ final class UserController {
         let user = drop.grouped("user")
         user.get("version", handler: version)
         user.post("register", handler: register)
-        user.post("all", handler: all)
+        user.get("all", handler: all)
+        user.get("delete", handler: delete)
     }
     
     func version(request: Request) throws -> ResponseRepresentable {
@@ -49,7 +50,6 @@ final class UserController {
             throw LedgerError.BadRequest
         }
         
-        
         do {
             guard let _ = try User.query().filter("walletid", walletid).first() else
             {
@@ -61,6 +61,29 @@ final class UserController {
         }
         catch {
             throw LedgerError.DatabaseError
+        }
+    }
+    
+    func delete(request: Request) throws -> ResponseRepresentable {
+
+        /* not exposed to mobile app */
+        guard let name = request.query?["name"]?.string else{
+            throw LedgerError.BadRequest
+        }
+
+        guard let usernameExists = try User.query().filter("name", name).first() else{
+            throw LedgerError.Unauthorized
+        }
+        
+        if let ledgeruser = try User.query().filter("name", usernameExists.name).first() {
+            try ledgeruser.delete()
+            return try JSON(node: [
+                "name": name,
+                "status": "Deleted"
+                ])
+        }
+        else {
+            throw Abort.custom(status: .unauthorized, message: "MARK - user not found.")
         }
     }
 }

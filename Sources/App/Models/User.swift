@@ -2,16 +2,8 @@ import Vapor
 import Fluent
 import Foundation
 import HTTP
-import Auth
-
-class Name: ValidationSuite {
-    static func validate(input value: String) throws {
-        let evaluation = OnlyAlphanumeric.self
-            && Count.min(3)
-            && Count.max(20)
-        try evaluation.validate(input: value)
-    }
-}
+import Turnstile
+import TurnstileCrypto
 
 class RawUser {
     var name: Valid<Name>
@@ -25,20 +17,24 @@ final class User: Model {
     static var entity = "ledgeruser"
     public var id: Node?
     var name: String
+    var password: String
     var walletid: String
     var createddate: Int
     var exists: Bool = false // suppresses Vapor 1.1 warning
  
-     convenience init(name: String) {
+    convenience init(name: String,  raw_password: String) {
         let date = Date()
         let walletid = UUID().uuidString
-        self.init(name: name, walletid: walletid, createddate: Int(date.timeIntervalSince1970))
+
+        self.init(name: name, password: raw_password, walletid: walletid, createddate: Int(date.timeIntervalSince1970))
     }
 
-    init(name: String, walletid: String, createddate: Int) {
+    init(name: String, password: String, walletid: String, createddate: Int) {
         self.name = name
         self.walletid = walletid
         self.createddate = createddate
+        let validated_password: Valid<PasswordValidator> = try raw_password.validated()
+        self.password = BCrypt.hash(password: validated_password.value)
     }
     
     init(node: Node, in context: Context) throws {
@@ -47,6 +43,8 @@ final class User: Model {
         name = try node.extract("name")
         walletid = try node.extract("walletid")
         createddate = try node.extract("createddate")
+        let password_string = try node.extract("password") as String
+        password = password_string
     }
     
  func makeNode(context: Context) throws -> Node {
@@ -54,6 +52,7 @@ final class User: Model {
             "id": id,
             "walletid": walletid,
             "name": name,
+            "password": password,
             "createddate": createddate
             ])
     }
@@ -85,43 +84,5 @@ extension User {
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter.string(from: date)
-    }
-}
-
-extension User: Auth.User {
-    static func authenticate(credentials: Credentials) throws -> Auth.User {
-        let user: User?
-        
-        switch credentials {
-        case let id as Identifier:
-            user = try User.find(id.id)
-        case let apiKey as APIKey:
-            user = try User.query().filter("email", apiKey.id).filter("password", apiKey.secret).first()
-        default:
-            throw Abort.custom(status: .badRequest, message: "Invalid credentials.")
-        }
-        
-        guard let u = user else {
-            throw Abort.custom(status: .badRequest, message: "User not found.")
-        }
-        
-        return u
-    }
-    
-    static func register(credentials: Credentials) throws -> Auth.User {
-        let registeruser = User(name: "testRegister")
-        return registeruser
-    }
-}
-
-import HTTP
-
-extension Request {
-    func user() throws -> User {
-        guard let user = try auth.user() as? User else {
-            throw Abort.custom(status: .badRequest, message: "Invalid user type.")
-        }
-        
-        return user
     }
 }
