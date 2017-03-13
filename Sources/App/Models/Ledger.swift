@@ -49,7 +49,7 @@ extension Ledger: Preparation {
 
             try database.create("ledger") { ledger in
                 ledger.id()
-                ledger.parent(User.self, optional: false)
+                ledger.parent(LedgerUser.self, optional: false)
                 ledger.string("drinker")
                 ledger.int("ledgerentry")
                 ledger.int("createddate")

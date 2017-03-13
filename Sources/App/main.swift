@@ -5,7 +5,7 @@ import Fluent
 
 let drop = Droplet()
 
-drop.preparations.append(User.self)
+drop.preparations.append(LedgerUser.self)
 drop.preparations.append(Ledger.self)
 
 try drop.addProvider(VaporMySQL.Provider.self)

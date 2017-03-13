@@ -6,7 +6,7 @@ enum LedgerError: Error {
     case DatabaseError
     case Unauthorized
     case UnknownError
-
+    case NoRecords
 }
 
 

@@ -40,7 +40,7 @@ final class LedgerController {
         }
         
         do {
-            let customer_in_db = try User.query().filter("walletid", customer).first()
+            let customer_in_db = try LedgerUser.query().filter("walletid", customer).first()
             guard customer_in_db != nil else { throw LedgerError.Unauthorized }
         }
         catch {
@@ -61,14 +61,14 @@ final class LedgerController {
     
     func buy(request: Request) throws -> ResponseRepresentable {
       
-        let buyer_in_db: User?
+        let buyer_in_db: LedgerUser?
         
         guard let buyer = request.data["buyer_walletid"]?.string else {
             throw LedgerError.BadRequest
         }
         
         do {
-            buyer_in_db = try User.query().filter("walletid", buyer).first()
+            buyer_in_db = try LedgerUser.query().filter("walletid", buyer).first()
             guard buyer_in_db != nil else { throw LedgerError.Unauthorized }
         }
         catch {
@@ -86,7 +86,7 @@ final class LedgerController {
             if buyer == drinker { throw LedgerError.Unauthorized } /* validate buyer not also drinker */
             
             do {
-                let drinker_in_db: User? = try User.query().filter("walletid", drinker).first()
+                let drinker_in_db: LedgerUser? = try LedgerUser.query().filter("walletid", drinker).first()
                 guard drinker_in_db != nil else { throw LedgerError.Unauthorized }
             }
             catch {

@@ -26,22 +26,29 @@ final class UserController {
 
     func register(request: Request) throws -> ResponseRepresentable {
         
-        var registeruser: User!
+        guard let username = request.data["username"]?.string else {
+            throw LedgerError.BadRequest
+        }
+        
+        guard let untrusted_password = request.data["password"]?.string else {
+            throw LedgerError.BadRequest
+        }
         
         do {
-            registeruser = User(name: (request.data["username"]?.string)!)
+            var registeruser = LedgerUser(name: username, raw_password: untrusted_password)
+            
             try registeruser.save()
+            
+            return try JSON(node: [
+                "WalletID": registeruser.walletid,
+                "Username": registeruser.name,
+                "CreatedDate": registeruser.readableDate,
+                "Result": true])
         }
         catch let error as ValidationErrorProtocol {
             print(error.message)
             throw LedgerError.DatabaseError
         }
-        
-        return try JSON(node: [
-        "WalletID": registeruser.walletid,
-        "Username": registeruser.name,
-        "CreatedDate": registeruser.readableDate,
-        "Result": true])
     }
     
     func all(request: Request) throws -> ResponseRepresentable {
@@ -50,17 +57,18 @@ final class UserController {
             throw LedgerError.BadRequest
         }
         
+        guard let _ = try LedgerUser.query().filter("walletid", walletid).first() else
+        {
+            throw LedgerError.Unauthorized
+        }
+        
         do {
-            guard let _ = try User.query().filter("walletid", walletid).first() else
-            {
-                throw Abort.custom(status: .badRequest, message: "You are not authorized to perform this search.")
-            }
-            
-            let allUsers = try User.query().filter("id", .greaterThanOrEquals, 1).all()
+            let allUsers = try LedgerUser.query().filter("id", .greaterThanOrEquals, 1).all()
+            // MARK: need to add a check here for zero users returned (although would never be invoked at the moment
             return try JSON(node: allUsers)
         }
         catch {
-            throw LedgerError.DatabaseError
+            throw LedgerError.NoRecords
         }
     }
     
@@ -71,11 +79,11 @@ final class UserController {
             throw LedgerError.BadRequest
         }
 
-        guard let usernameExists = try User.query().filter("name", name).first() else{
+        guard let usernameExists = try LedgerUser.query().filter("name", name).first() else{
             throw LedgerError.Unauthorized
         }
         
-        if let ledgeruser = try User.query().filter("name", usernameExists.name).first() {
+        if let ledgeruser = try LedgerUser.query().filter("name", usernameExists.name).first() {
             try ledgeruser.delete()
             return try JSON(node: [
                 "name": name,

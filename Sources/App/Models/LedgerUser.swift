@@ -5,15 +5,7 @@ import HTTP
 import Turnstile
 import TurnstileCrypto
 
-class RawUser {
-    var name: Valid<Name>
-    
-    init(request: Request) throws {
-        name = try request.data["username"].validated()
-    }
-}
-
-final class User: Model {
+final class LedgerUser: Model {
     static var entity = "ledgeruser"
     public var id: Node?
     var name: String
@@ -22,19 +14,17 @@ final class User: Model {
     var createddate: Int
     var exists: Bool = false // suppresses Vapor 1.1 warning
  
-    convenience init(name: String,  raw_password: String) {
+    convenience init(name: String, raw_password: String) {
         let date = Date()
         let walletid = UUID().uuidString
-
         self.init(name: name, password: raw_password, walletid: walletid, createddate: Int(date.timeIntervalSince1970))
     }
 
     init(name: String, password: String, walletid: String, createddate: Int) {
         self.name = name
+        self.password = password
         self.walletid = walletid
         self.createddate = createddate
-        let validated_password: Valid<PasswordValidator> = try raw_password.validated()
-        self.password = BCrypt.hash(password: validated_password.value)
     }
     
     init(node: Node, in context: Context) throws {
@@ -58,12 +48,13 @@ final class User: Model {
     }
 }
     
-extension User: Preparation {
+extension LedgerUser: Preparation {
     static func prepare(_ database: Database) throws {
 
         try database.create(entity) { users in
             users.id()
             users.string("name", length: nil, optional: false)
+            users.string("password")
             users.string("walletid")
             users.int("createddate")
         }
@@ -74,7 +65,7 @@ extension User: Preparation {
     }
 }
 
-extension User {
+extension LedgerUser {
     var date: Date {
         return Date(timeIntervalSince1970: Double(createddate))
     }
