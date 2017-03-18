@@ -22,7 +22,8 @@ final class LedgerUser: Model {
 
     init(name: String, password: String, walletid: String, createddate: Int) {
         self.name = name
-        self.password = password
+       // let validated_password: Valid<PasswordValidator> = try password.validated()
+        self.password = BCrypt.hash(password: password)
         self.walletid = walletid
         self.createddate = createddate
     }
@@ -30,7 +31,7 @@ final class LedgerUser: Model {
     init(node: Node, in context: Context) throws {
 
         id = try node.extract("id")
-        name = try node.extract("name")
+        name = try node.extract("name") as String
         walletid = try node.extract("walletid")
         createddate = try node.extract("createddate")
         let password_string = try node.extract("password") as String
@@ -45,6 +46,16 @@ final class LedgerUser: Model {
             "password": password,
             "createddate": createddate
             ])
+    }
+    static func register(name: String, password: String) throws -> LedgerUser {
+        var new_user = try LedgerUser(name: name, raw_password: password)
+
+        if try LedgerUser.query().filter("name", name).first() == nil {
+            try new_user.save()
+            return new_user
+        } else {
+            throw LedgerError.AlreadyRegistered
+        }
     }
 }
     

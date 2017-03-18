@@ -24,8 +24,15 @@ class LedgerErrorMiddleware: Middleware {
 
         catch LedgerError.NoRecords {
             throw Abort.custom(
-                status: .serviceUnavailable,
+                status: .badRequest,
                 message: "Sorry, no records to return."
+            )
+        }
+
+        catch LedgerError.AlreadyRegistered {
+            throw Abort.custom(
+                status: .badRequest,
+                message: "Sorry, already registered."
             )
         }
             

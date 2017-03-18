@@ -17,18 +17,6 @@ final class LedgerController {
         let v2 = drop.grouped("v2")
         v2.post("buy", handler: buy)
         v2.get("transactions", handler: transcations)
-        v2.get("ledger", handler: ledger)
-    }
-    
-    func ledger(request: Request) throws -> ResponseRepresentable {
- 
-        let users = try [
-            ["name": "bob", "id": "1111"].makeNode(),
-            ["name": "alice", "id": "2222"].makeNode(),
-            ["name": "yves", "id": "3333"].makeNode()
-        ].makeNode()
-        
-        return try drop.view.make("ledger", Node(node: ["users": users]))
     }
     
     func transcations(request: Request) throws -> ResponseRepresentable {
@@ -136,5 +124,4 @@ final class LedgerController {
 
         return "The string is: \(chars_to_count.count) characters long"
     }
-
 }

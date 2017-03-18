@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Ledger</title>
+      	<link rel="stylesheet" href="styles/app.css">
+    </head>
+
+<body class="body">
+<h1 id="logo">Vapor</h1>
+    <div class="row">
+        <div class="u-full-width">
+            <form action="register" method = "post">
+                <label>Name</label>
+                <input name="name", class="u-full-width", type="name"/>
+                <label>Password</label>
+                <input name="password", class="u-full-width", type="password"/>
+                <input class="button-primary", value="Register", type="submit"/>
+            </form>
+        </div>
+    </div>
+</body>
+
+<footer class="main">
+    <p>Powered by Vapor and Swift. Built by <a href="https://github.com/rustymagnet3000/theLedger">Rusty Magnet</a>.</p>
+</footer>
+
+</html>

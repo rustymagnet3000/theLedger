@@ -1,15 +1,15 @@
 import Vapor
 
-class Password: ValidationSuite {
+class PasswordValidator: ValidationSuite {
     static func validate(input value: String) throws {
         let evaluation = OnlyAlphanumeric.self
             && Count.min(3)
             && Count.max(20)
-        try evaluation.validate(input: value)
+            try evaluation.validate(input: value)
     }
 }
 
-class Name: ValidationSuite {
+class NameValidator: ValidationSuite {
     static func validate(input value: String) throws {
         let evaluation = OnlyAlphanumeric.self
             && Count.min(3)

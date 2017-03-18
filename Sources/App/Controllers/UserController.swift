@@ -12,6 +12,32 @@ final class UserController {
         user.post("register", handler: register)
         user.get("all", handler: all)
         user.get("delete", handler: delete)
+        user.get("ledgerusers", handler: ledgerusers)
+        user.get("register", handler: registerView)
+        user.post("register", handler: register)
+    }
+    
+    func registerView(request: Request) throws -> ResponseRepresentable {
+        return try drop.view.make("register")
+    }
+    
+    /* handle the posted form */
+    func register(request: Request) throws -> ResponseRepresentable {
+        guard let name = request.formURLEncoded?["name"]?.string,
+            let password = request.formURLEncoded?["password"]?.string else {
+                return "missing field"
+        }
+        _ = try LedgerUser.register(name: name, password: password)
+        
+        
+        return Response(redirect: "/user/ledgerusers")
+    }
+    
+    func ledgerusers(request: Request) throws -> ResponseRepresentable {
+        
+        let users = try LedgerUser.query().filter("id", .greaterThanOrEquals, 1).all().makeNode()
+        
+        return try drop.view.make("ledgerusers", Node(node: ["users": users]))
     }
     
     func version(request: Request) throws -> ResponseRepresentable {
@@ -24,33 +50,6 @@ final class UserController {
         }
     }
 
-    func register(request: Request) throws -> ResponseRepresentable {
-        
-        guard let username = request.data["username"]?.string else {
-            throw LedgerError.BadRequest
-        }
-        
-        guard let untrusted_password = request.data["password"]?.string else {
-            throw LedgerError.BadRequest
-        }
-        
-        do {
-            var registeruser = LedgerUser(name: username, raw_password: untrusted_password)
-            
-            try registeruser.save()
-            
-            return try JSON(node: [
-                "WalletID": registeruser.walletid,
-                "Username": registeruser.name,
-                "CreatedDate": registeruser.readableDate,
-                "Result": true])
-        }
-        catch let error as ValidationErrorProtocol {
-            print(error.message)
-            throw LedgerError.DatabaseError
-        }
-    }
-    
     func all(request: Request) throws -> ResponseRepresentable {
         
         guard let walletid = request.query?["walletid"]?.string else {
