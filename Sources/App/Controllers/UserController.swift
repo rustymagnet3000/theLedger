@@ -23,14 +23,30 @@ final class UserController {
     
     /* handle the posted form */
     func register(request: Request) throws -> ResponseRepresentable {
-        guard let name = request.formURLEncoded?["name"]?.string,
-            let password = request.formURLEncoded?["password"]?.string else {
-                return "missing field"
+        
+        switch (request.headers["Content-Type"]! as String) {
+        case "application/json":
+            guard let name = request.json?["name"]?.string,
+                let password = request.json?["password"]?.string else {
+                    throw LedgerError.BadRequest
+            }
+            let registered_user = try LedgerUser.register(name: name, password: password)
+            return try JSON(node: registered_user)
+            
+        case "application/x-www-form-urlencoded":
+            guard let name = request.formURLEncoded?["name"]?.string,
+                let password = request.formURLEncoded?["password"]?.string else {
+                    throw LedgerError.BadRequest
+            }
+             _ = try LedgerUser.register(name: name, password: password)
+            return Response(redirect: "/user/ledgerusers")
+        
+        default:
+            print("missing content type")
+            throw LedgerError.BadRequest
         }
-        _ = try LedgerUser.register(name: name, password: password)
         
         
-        return Response(redirect: "/user/ledgerusers")
     }
     
     func ledgerusers(request: Request) throws -> ResponseRepresentable {
@@ -91,6 +107,17 @@ final class UserController {
         }
         else {
             throw Abort.custom(status: .unauthorized, message: "MARK - user not found.")
+        }
+    }
+}
+
+extension HTTP.KeyAccessible where Key == HeaderKey, Value == String {
+    var customKey: String? {
+        get {
+            return self["Custom-Key"]
+        }
+        set {
+            self["Custom-Key"] = newValue
         }
     }
 }
