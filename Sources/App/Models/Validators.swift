@@ -5,7 +5,7 @@ class PasswordValidator: ValidationSuite {
         let evaluation = OnlyAlphanumeric.self
             && Count.min(3)
             && Count.max(20)
-            try evaluation.validate(input: value)
+        try evaluation.validate(input: value)
     }
 }
 

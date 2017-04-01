@@ -21,31 +21,27 @@ final class UserController {
         return try drop.view.make("register")
     }
     
-    /* handle the posted form */
+    /* handle the posted form - request.data handles both URL encoded forms and json */
     func register(request: Request) throws -> ResponseRepresentable {
         
-        switch (request.headers["Content-Type"]! as String) {
-        case "application/json":
-            guard let name = request.json?["name"]?.string,
-                let password = request.json?["password"]?.string else {
-                    throw LedgerError.BadRequest
-            }
-            let registered_user = try LedgerUser.register(name: name, password: password)
-            return try JSON(node: registered_user)
-            
-        case "application/x-www-form-urlencoded":
-            guard let name = request.formURLEncoded?["name"]?.string,
-                let password = request.formURLEncoded?["password"]?.string else {
-                    throw LedgerError.BadRequest
-            }
-             _ = try LedgerUser.register(name: name, password: password)
-            return Response(redirect: "/user/ledgerusers")
-        
-        default:
-            print("missing content type")
+        guard let name = request.data["name"]?.string else {
             throw LedgerError.BadRequest
         }
         
+        guard let password = request.data["password"]?.string else {
+            throw LedgerError.BadRequest
+        }
+        
+        let registered_user = try LedgerUser.register(name: name, password: password)
+        
+        switch (request.headers["Content-Type"]! as String) {
+
+            case "application/x-www-form-urlencoded":
+                return Response(redirect: "/user/ledgerusers")
+        
+            default:
+                return try JSON(node: registered_user)
+        }
         
     }
     
@@ -89,7 +85,6 @@ final class UserController {
     
     func delete(request: Request) throws -> ResponseRepresentable {
 
-        /* not exposed to mobile app */
         guard let name = request.query?["name"]?.string else{
             throw LedgerError.BadRequest
         }
@@ -98,7 +93,7 @@ final class UserController {
             throw LedgerError.Unauthorized
         }
         
-        if let ledgeruser = try LedgerUser.query().filter("name", usernameExists.name).first() {
+        if let ledgeruser = try LedgerUser.query().filter("name", usernameExists.name.value).first() {
             try ledgeruser.delete()
             return try JSON(node: [
                 "name": name,

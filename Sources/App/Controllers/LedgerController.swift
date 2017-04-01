@@ -93,10 +93,7 @@ final class LedgerController {
             }
         }
         
-        return try JSON(node: [
-            "buyer": buyer_in_db?.name,
-            "drinkers": "\(drinker_array.count)"
-            ])
+        return try JSON("buyer")
     }
     
     func version(request: Request) throws -> ResponseRepresentable {
