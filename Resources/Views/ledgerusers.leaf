@@ -1,22 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+    
     <head>
         <title>Ledger</title>
-        <link rel="stylesheet" href="styles/app.css">
+        <link rel="stylesheet" href="styles/skeleton.css">
+            <link rel="stylesheet" href="styles/normalize.css">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                    
+                    <link href='//fonts.googleapis.com/css?family=Raleway:400,300,600' rel='stylesheet' type='text/css'>
+                        
     </head>
     
-    <body class="body">
+    <body>
         <h1 id="logo">Vapor</h1>
-        #loop(users, "user") {
-        
-        <div class="row">
-                <label>User: #(user.name) #(user.walletid) #(user.password)</label>
-        </div>
-        }
-    </body>
-    
-    <footer class="main">
-        <p>Powered by Vapor and Swift. Built by <a href="https://github.com/rustymagnet3000/theLedger">Rusty Magnet</a>.</p>
-    </footer>
-    
-</html>
+
+    <table class="u-full-width">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Wallet ID</th>
+                <th>Password</th>
+            </tr>
+        </thead>
+        <tbody>
+            #loop(users, "user") {
+                <tr>
+                    <td>#(user.name)</td>
+                    <td>#(user.walletid)</td>
+                    <td>#(user.password)</td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
+
+
+#embed("embeds/footer")
