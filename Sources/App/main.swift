@@ -24,5 +24,8 @@ drop.get("/") { request in
     return try drop.view.make("welcome.html")
 }
 
+drop.get("/skeleton") { request in
+    return try drop.view.make("skeleton.html")
+}
 
 drop.run()

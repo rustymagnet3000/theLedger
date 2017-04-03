@@ -1,33 +1,21 @@
 #embed("embeds/header")
 
 <body>
-<div class="section hero">
 <div class="container">
-<div class="row">
-<div class="one-half column">
-<h4 class="hero-heading">Stop coding non-responsive sites. Let users view sites from anywhere.</h4>
-<a class="button button-primary" href="http://getskeleton.com">Try Skeleton</a>
-</div>
-<div class="one-half column phones">
-<img class="phone" src="images/iphone.png">
-<img class="phone" src="images/iphone.png">
-</div>
-</div>
-</div>
-</div>
+#embed("embeds/title")
 
-            <form action="register" method = "post">
-                <label>Name</label>
-                <input name="name", class="u-full-width", type="name"/>
-                <label>Password</label>
-                <input name="password", class="u-full-width", type="password"/>
+    <form action="register" method = "post">
+    
+        <label>Name</label>
+        <input name="name", class="u-full-width", type="name"/>
+        <label>Password</label>
+        <input name="password", class="u-full-width", type="password"/>
 
-                <a class="button button-primary" href="#">Anchor button</a>
-                <button class="button-primary">Button element</button>
-                <input class="button-primary" value="Register" type="submit">
-                <input class="button-primary" value="Register" type="button">
-            </form>
+        <input class="button-primary" value="Register" type="submit">
 
+    
+    </form>
+</div>
 </body>
 
 #embed("embeds/footer")
