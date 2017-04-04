@@ -1,11 +1,10 @@
-#embed("embeds/header")
+#extend("master")
 
-<body>
+#export("body") {
 <div class="container">
-#embed("embeds/title")
 
     <form action="register" method = "post">
-    
+
         <label>Name</label>
         <input name="name", class="u-full-width", type="name"/>
         <label>Password</label>
@@ -13,9 +12,7 @@
 
         <input class="button-primary" value="Register" type="submit">
 
-    
     </form>
-</div>
-</body>
 
-#embed("embeds/footer")
+</div>
+}

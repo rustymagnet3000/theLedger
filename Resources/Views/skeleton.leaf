@@ -1,0 +1,5 @@
+#extend("master")
+
+#export("body") {
+hello world. I cannot believe it!
+}

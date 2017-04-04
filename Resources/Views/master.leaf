@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        #embed("embeds/header")
+    </head>
+
+    <body>
+        #import("body")
+    </body>
+
+    <footer>
+        #embed("embeds/footer")
+    </footer>
+</html>

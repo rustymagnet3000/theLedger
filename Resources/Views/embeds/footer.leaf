@@ -1,14 +1,15 @@
-<footer class="main">
 
+    <footer class="main">
+        <div class="container">
 
-    <style>
-    footer.main {
-        font-family: -apple-system, sans-serif;
-    }
-    </style>
+        <style>
+        footer.main {
+            font-family: -apple-system, sans-serif;
+        }
+        </style>
 
-    <p>Powered by Vapor and Swift. Built by <a href="https://github.com/rustymagnet3000/theLedger">Rusty Magnet</a>.</p>
+        <p>Powered by Vapor and Swift. Built by <a href="https://github.com/rustymagnet3000/theLedger">Rusty Magnet</a>.</p>
 
-
-</footer>
+    </div>
+    </footer>
 </html>

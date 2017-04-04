@@ -1,30 +1,29 @@
-#embed("embeds/header")
-<body>
+#extend("master")
+
+#export("body") {
+
 <div class="container">
-#embed("embeds/title")
-        
+
     <table class="u-full-width">
         <thead>
-            <tr>
-                <th>Username</th>
-                <th>Date Created</th>
-                <th>Wallet ID</th>
-                <th>Password</th>
-            </tr>
-        </thead>
-        <tbody>
-            #loop(users, "user") {
-                <tr>
-                    <td>#(user.name)</td>
-                    <td>#(user.createddate)</td>
-                    <td>#(user.walletid)</td>
-                    <td>#(user.password)</td>
-                </tr>
-            }
+        <tr>
+            <th>Username</th>
+            <th>Date Created</th>
+            <th>Wallet ID</th>
+            <th>Password</th>
+        </tr>
+    </thead>
+    <tbody>
+    #loop(users, "user") {
+        <tr>
+            <td>#(user.name)</td>
+            <td>#(user.createddate)</td>
+            <td>#(user.walletid)</td>
+            <td>#(user.password)</td>
+        </tr>
+    }
 
-        </tbody>
+    </tbody>
     </table>
-</div>
-</body>
-
-#embed("embeds/footer")
+    </div>
+}

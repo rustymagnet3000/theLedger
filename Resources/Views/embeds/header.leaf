@@ -2,9 +2,12 @@
 <html lang="en">
     
     <head>
-        <title>Ledger</title>
+        <title>The Ledger</title>
         <link rel="stylesheet" href="/styles/skeleton.css">
-            <link rel="stylesheet" href="/styles/normalize.css">
-                <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <link href='//fonts.googleapis.com/css?family=Raleway:400,300,600' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="/styles/normalize.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href='//fonts.googleapis.com/css?family=Raleway:400,300,600' rel='stylesheet' type='text/css'>
     </head>
+    <div class="container">
+        #embed("embeds/title")
+    </div>
