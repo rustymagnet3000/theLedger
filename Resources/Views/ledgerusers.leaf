@@ -3,7 +3,7 @@
 #export("body") {
 
 <div class="container">
-
+#embed("embeds/title")<h2>All Users</h2>
     <table class="u-full-width">
         <thead>
         <tr>

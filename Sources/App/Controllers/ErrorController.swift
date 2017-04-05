@@ -8,6 +8,7 @@ enum LedgerError: Error {
     case UnknownError
     case AlreadyRegistered
     case NoRecords
+    case BadCredentials
 }
 
 

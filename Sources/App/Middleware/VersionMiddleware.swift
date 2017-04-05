@@ -29,6 +29,13 @@ class LedgerErrorMiddleware: Middleware {
             )
         }
 
+        catch LedgerError.BadCredentials {
+            throw Abort.custom(
+                status: .unauthorized,
+                message: "Bad credentials."
+            )
+        }
+            
         catch LedgerError.AlreadyRegistered {
             throw Abort.custom(
                 status: .badRequest,

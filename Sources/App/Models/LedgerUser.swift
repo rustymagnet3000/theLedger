@@ -4,8 +4,9 @@ import Foundation
 import HTTP
 import Turnstile
 import TurnstileCrypto
+import Auth
 
-final class LedgerUser: Model {
+final class LedgerUser: Model, User {
     static var entity = "ledgeruser"
     public var id: Node?
     var name: Valid<NameValidator>
@@ -86,5 +87,38 @@ extension LedgerUser {
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter.string(from: date)
+    }
+}
+
+extension LedgerUser: Authenticator {
+    
+    static func authenticate(credentials: Credentials) throws -> User {
+        var user: LedgerUser?
+        
+        switch credentials {
+        
+        case let credentials as UsernamePassword:
+            let fetched_user = try LedgerUser.query()
+                .filter("name", credentials.username)
+                .first()
+            if let password = fetched_user?.password,
+                password != "",
+                (try BCrypt.verify(password: credentials.password, matchesHash: password)) == true {
+                user = fetched_user
+            }
+        case let credentials as Identifier:
+            user = try LedgerUser.find(credentials.id)
+        default:
+            throw LedgerError.BadCredentials
+        }
+    
+        if let user = user {
+            return user
+        } else {
+            throw IncorrectCredentialsError()
+        }
+    }
+    static func register(credentials: Credentials) throws -> User {
+        throw Abort.custom(status: .badGateway, message: "in register func")
     }
 }

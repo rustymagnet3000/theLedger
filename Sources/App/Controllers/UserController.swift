@@ -3,6 +3,7 @@ import VaporMySQL
 import Foundation
 import Fluent
 import HTTP
+import Turnstile
 
 final class UserController {
         
@@ -13,8 +14,35 @@ final class UserController {
         user.get("all", handler: all)
         user.get("delete", handler: delete)
         user.get("ledgerusers", handler: ledgerusers)
+        user.get("login", handler: loginView)
+        user.post("login", handler: login)
         user.get("register", handler: registerView)
         user.post("register", handler: register)
+    }
+    
+    func loginView(request: Request) throws -> ResponseRepresentable {
+        return try drop.view.make("login")
+    }
+    func login(request: Request) throws -> ResponseRepresentable {
+        
+        guard let name = request.data["name"]?.string else {
+            throw LedgerError.BadRequest
+        }
+        
+        guard let password = request.data["password"]?.string else {
+            throw LedgerError.BadRequest
+        }
+        
+        let credentials = UsernamePassword(username: name, password: password)
+        
+        do {
+            try request.auth.login(credentials)
+            return Response(redirect: "/user/ledgerusers")
+        }
+        catch let e as TurnstileError {
+            print("you got here")
+            return e.description
+        }
     }
     
     func registerView(request: Request) throws -> ResponseRepresentable {

@@ -2,12 +2,13 @@ import Vapor
 import VaporMySQL
 import Foundation
 import Fluent
+import Auth
 
 let drop = Droplet()
 
 drop.preparations.append(LedgerUser.self)
 drop.preparations.append(Ledger.self)
-
+drop.addConfigurable(middleware: AuthMiddleware(user: LedgerUser.self), name: "auth")
 try drop.addProvider(VaporMySQL.Provider.self)
 
 drop.middleware.append(VersionMiddleware())

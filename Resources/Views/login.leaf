@@ -2,17 +2,17 @@
 
 #export("body") {
 <div class="container">
-#embed("embeds/title")<h2>Register</h2>
-    <form action="register" method = "post">
+    #embed("embeds/title")<h2>Login</h2>
 
+    <form action="login" method = "post">
+        
         <label>Name</label>
         <input name="name", class="u-full-width", type="name"/>
         <label>Password</label>
         <input name="password", class="u-full-width", type="password"/>
-
-        <input class="button-primary" value="Register" type="submit">
-
+        
+        <input class="button-primary" value="Login" type="submit">
+            
     </form>
-
 </div>
 }
