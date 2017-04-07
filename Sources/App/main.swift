@@ -21,6 +21,15 @@ ledger.addSmokeRoutes(drop: drop)
 let user = UserController()
 user.addRoutes(drop: drop)
 
+
+//let protect = ProtectMiddleware(error: Abort.custom(status: .unauthorized, message: "Unauthorized"))
+
+//drop.grouped(BasicAuthenticationMiddleware(), protect).group("api") { api in
+//    api.get("me") { request in
+//        return try JSON(node: request.user().makeNode())
+//    }
+//}
+
 drop.get("/") { request in
     return try drop.view.make("welcome.html")
 }

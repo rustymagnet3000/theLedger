@@ -9,7 +9,6 @@ final class UserController {
         
     func addRoutes(drop: Droplet){
         let user = drop.grouped("user")
-        user.get("version", handler: version)
         user.post("register", handler: register)
         user.get("all", handler: all)
         user.get("delete", handler: delete)
@@ -37,10 +36,10 @@ final class UserController {
         
         do {
             try request.auth.login(credentials)
-            return Response(redirect: "/user/ledgerusers")
+            return try drop.view.make("loggedin")
         }
         catch let e as TurnstileError {
-            print("you got here")
+            print("bad credentials")
             return e.description
         }
     }
@@ -78,16 +77,6 @@ final class UserController {
         let users = try LedgerUser.query().filter("id", .greaterThanOrEquals, 1).all().makeNode()
         
         return try drop.view.make("ledgerusers", Node(node: ["users": users]))
-    }
-    
-    func version(request: Request) throws -> ResponseRepresentable {
-        
-        if let db = drop.database?.driver as? MySQLDriver {
-            let version = try db.raw("select version()")
-            return try JSON(node: version)
-        } else {
-            throw LedgerError.ServiceUnavailable
-        }
     }
 
     func all(request: Request) throws -> ResponseRepresentable {
