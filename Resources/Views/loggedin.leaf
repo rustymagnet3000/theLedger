@@ -3,5 +3,6 @@
 #export("body") {
 <div class="container">
     #embed("embeds/title")<h2>Logged In</h2>
+    <a href="/user/profile">Profile</a>
 </div>
 }

@@ -108,6 +108,10 @@ extension LedgerUser: Authenticator {
             }
         case let credentials as Identifier:
             user = try LedgerUser.find(credentials.id)
+        
+        case let accessToken as AccessToken:
+            user = try LedgerUser.query().filter("access_token", accessToken.string).first()
+            
         default:
             throw LedgerError.BadCredentials
         }

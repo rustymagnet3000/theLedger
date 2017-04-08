@@ -4,12 +4,14 @@ import Foundation
 import Fluent
 import HTTP
 import Turnstile
+import Auth
 
 final class UserController {
-        
+    
     func addRoutes(drop: Droplet){
+        
         let user = drop.grouped("user")
-        user.post("register", handler: register)
+        
         user.get("all", handler: all)
         user.get("delete", handler: delete)
         user.get("ledgerusers", handler: ledgerusers)
@@ -17,11 +19,24 @@ final class UserController {
         user.post("login", handler: login)
         user.get("register", handler: registerView)
         user.post("register", handler: register)
+        user.get("profile", handler: profile)
     }
-    
+
+    func profile(request: Request) throws -> ResponseRepresentable {
+        
+        do {
+            return try drop.view.make("profile")
+        }
+        catch let e as TurnstileError {
+            print("bad credentials")
+            return e.description
+        }
+    }
+
     func loginView(request: Request) throws -> ResponseRepresentable {
         return try drop.view.make("login")
     }
+
     func login(request: Request) throws -> ResponseRepresentable {
         
         guard let name = request.data["name"]?.string else {
@@ -48,7 +63,7 @@ final class UserController {
         return try drop.view.make("register")
     }
     
-    /* handle the posted form - request.data handles both URL encoded forms and json */
+    /* handle posted form - request.data handles both URL encoded forms and json */
     func register(request: Request) throws -> ResponseRepresentable {
         
         guard let name = request.data["name"]?.string else {
