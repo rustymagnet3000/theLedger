@@ -19,18 +19,6 @@ final class UserController {
         user.post("login", handler: login)
         user.get("register", handler: registerView)
         user.post("register", handler: register)
-        user.get("profile", handler: profile)
-    }
-
-    func profile(request: Request) throws -> ResponseRepresentable {
-        
-        do {
-            return try drop.view.make("profile")
-        }
-        catch let e as TurnstileError {
-            print("bad credentials")
-            return e.description
-        }
     }
 
     func loginView(request: Request) throws -> ResponseRepresentable {
