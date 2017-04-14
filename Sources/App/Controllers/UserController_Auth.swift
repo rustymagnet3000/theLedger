@@ -13,17 +13,26 @@ final class UserController_Auth {
         let personal = drop.grouped("personal")
         let error = Abort.custom(status: .forbidden, message: "Invalid credentials.")
         let protect = ProtectMiddleware(error: error)
-        
         let protected_service = personal.grouped(protect)
-        protected_service.get("profile", handler: profile)
+        protected_service.get("profile", handler: profileView)
 
     }
-    
-    func profile(request: Request) throws -> ResponseRepresentable {
+
+    func profileView(request: Request) throws -> ResponseRepresentable {
         
         do {
             
-            return try drop.view.make("profile")
+            guard let name = request.query?["name"]?.string else{
+                throw LedgerError.BadRequest
+            }
+            
+            guard let user = try LedgerUser.query().filter("name", name).first() else
+            {
+                throw LedgerError.Unauthorized
+            }
+
+            return try drop.view.make("profile", Node(node: ["user":user, "readable_date": user.readable_date]))
+
         }
         catch let e as TurnstileError {
             print("bad credentials")

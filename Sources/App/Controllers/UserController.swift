@@ -39,7 +39,7 @@ final class UserController {
         
         do {
             try request.auth.login(credentials)
-            return try drop.view.make("loggedin")
+            return try drop.view.make("loggedin", Node(node: ["name":name]))
         }
         catch let e as TurnstileError {
             print("bad credentials")

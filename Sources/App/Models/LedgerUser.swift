@@ -82,7 +82,7 @@ extension LedgerUser {
         return Date(timeIntervalSince1970: Double(createddate))
     }
     
-    var readableDate: String {
+    var readable_date: String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short

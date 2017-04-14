@@ -1,8 +1,24 @@
 #extend("master")
 
 #export("body") {
+
 <div class="container">
-#embed("embeds/title")<h2>Profile</h2>
-all your drinks in here
+    #embed("embeds/title")<h2>#(user.name)</h2>
+
+
+<table class="u-full-width">
+<thead>
+<tr>
+    <th></th>
+    <th></th>
+</tr>
+</thead>
+<tbody>
+    <tr><td>Registered</td><td>#(readable_date)</td><tr>
+    <tr><td>Wallet ID</td><td>#(user.walletid)</td><tr>
+    <tr><td>Password</td><td>#(user.password)</td></tr>
+
+</tbody>
+</table>
 </div>
 }
