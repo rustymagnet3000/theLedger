@@ -90,6 +90,13 @@ extension LedgerUser {
     }
 }
 
+extension LedgerUser {
+    func transactions() throws -> [Ledger] {
+        return try children(nil, Ledger.self).all()
+    }
+}
+
+
 extension LedgerUser: Authenticator {
     
     static func authenticate(credentials: Credentials) throws -> User {

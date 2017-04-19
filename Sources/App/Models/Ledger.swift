@@ -6,16 +6,16 @@ import HTTP
 final class Ledger: Model {
     static var entity = "ledger"
     public var id: Node?
-    var buyer: Node?
+    var ledgeruser_id: Node?
     var drinker: String
     var createddate: Int
     var ledgerentry: LedgerEntry
     var numberofdrinks: Int
     var exists: Bool = false
     
-    init(buyer: Node? = nil, drinker: String, createddate: Int, ledgerentry: LedgerEntry, numberofdrinks: Int) {
+    init(ledgeruser_id: Node? = nil, drinker: String, createddate: Int, ledgerentry: LedgerEntry, numberofdrinks: Int) {
         let date = Date()
-        self.buyer = buyer
+        self.ledgeruser_id = ledgeruser_id
         self.drinker = drinker
         self.createddate = Int(date.timeIntervalSince1970)
         self.ledgerentry = ledgerentry
@@ -25,7 +25,7 @@ final class Ledger: Model {
     init(node: Node, in context: Context) throws {
         
         id = try node.extract("id")
-        buyer = try node.extract("buyer")
+        ledgeruser_id = try node.extract("ledgeruser_id")
         drinker = try node.extract("drinker")
         ledgerentry = try node.extract("ledgerentry")
         createddate = try node.extract("createddate")
@@ -35,8 +35,8 @@ final class Ledger: Model {
     func makeNode(context: Context) throws -> Node {
         return try Node(node: [
             "id": id,
+            "ledgeruser_id": ledgeruser_id,
             "drinker": drinker,
-            "buyer": buyer,
             "ledgerentry": ledgerentry.rawValue,
             "createddate": createddate,
             "numberofdrinks": numberofdrinks
@@ -51,9 +51,10 @@ extension Ledger: Preparation {
                 ledger.id()
                 ledger.parent(LedgerUser.self, optional: false)
                 ledger.string("drinker")
-                ledger.int("ledgerentry")
                 ledger.int("createddate")
+                ledger.int("ledgerentry")
                 ledger.int("numberofdrinks")
+                
             }
     }
     
@@ -61,6 +62,14 @@ extension Ledger: Preparation {
         try database.delete("ledger")
     }
 }
+
+extension Ledger {
+    func buyer() throws -> LedgerUser? {
+        
+        return try parent(ledgeruser_id, nil, LedgerUser.self).get()
+    }
+}
+
 
 extension Ledger {
     var date: Date {

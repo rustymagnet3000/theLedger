@@ -6,17 +6,24 @@ import HTTP
 
 final class LedgerController {
  
-    func addSmokeRoutes(drop: Droplet){
-        let v0 = drop.grouped("v0")
-        v0.get("version", handler: version)
-        v0.get("healthcheck", handler: healthcheck)
-        v0.post("count", handler: count)
-    }
-
     func addRoutes(drop: Droplet){
         let v2 = drop.grouped("v2")
         v2.post("buy", handler: buy)
         v2.get("transactions", handler: transcations)
+        v2.get(LedgerUser.self, "user_transactions", handler: transcationsIndex)
+        v2.get(Ledger.self, "transaction_buyer", handler: transaction_buyer)
+    }
+
+    func transcationsIndex(request: Request, ledgeruser: LedgerUser) throws -> ResponseRepresentable {
+        let children = try ledgeruser.transactions()
+        return try JSON(node: children.makeNode())
+    }
+    
+    func transaction_buyer(request: Request, ledger: Ledger) throws -> ResponseRepresentable {
+        guard let ledgeruser = try ledger.buyer() else {
+            throw LedgerError.NoRecords
+        }
+        return try JSON(node: ledgeruser.makeNode())
     }
     
     func transcations(request: Request) throws -> ResponseRepresentable {
@@ -30,95 +37,50 @@ final class LedgerController {
         do {
             let customer_in_db = try LedgerUser.query().filter("walletid", customer).first()
             guard customer_in_db != nil else { throw LedgerError.Unauthorized }
-        }
-        catch {
-            throw LedgerError.Unauthorized
-        }
 
-        do {
-            history_purchases = try Ledger.query().filter("buyer", .equals, customer).all()
+            history_purchases = try Ledger.query().filter("ledgeruser_id", .equals, (customer_in_db?.id)!).all()
         }
         catch {
             throw Abort.custom(status: .badRequest, message: "Problem retrieving transactions.")
         }
-        
 
         return try JSON(node: history_purchases)
-
     }
     
     func buy(request: Request) throws -> ResponseRepresentable {
       
-        let buyer_in_db: LedgerUser?
-        
         guard let buyer = request.data["buyer_walletid"]?.string else {
             throw LedgerError.BadRequest
         }
         
-        do {
-            buyer_in_db = try LedgerUser.query().filter("walletid", buyer).first()
-            guard buyer_in_db != nil else { throw LedgerError.Unauthorized }
-        }
-        catch {
-            throw LedgerError.Unauthorized
-        }
-    
-        guard let drinker_array = request.data["drinker_walletid"]?.array else {
+        guard let number_of_drinks = request.data["drink_number"]?.int else {
             throw LedgerError.BadRequest
         }
-    
-        for unknown_drinker in drinker_array {
-
-            guard let drinker = unknown_drinker.string else { throw LedgerError.BadRequest }
-            if drinker.isEmpty { throw LedgerError.BadRequest } /* validate parameter is present but not null */
-            if buyer == drinker { throw LedgerError.Unauthorized } /* validate buyer not also drinker */
-            
-            do {
-                let drinker_in_db: LedgerUser? = try LedgerUser.query().filter("walletid", drinker).first()
-                guard drinker_in_db != nil else { throw LedgerError.Unauthorized }
-            }
-            catch {
-                throw LedgerError.Unauthorized
-            }
         
-            let node: Node? = "7D60EB8D-9941-4BBE-BE34-376499CFA802"
-            do {
-                var ledgerRecord = Ledger(buyer: node, drinker: drinker, createddate: 0, ledgerentry: .Purchased, numberofdrinks: 1)
+        do {
+            
+            let buyer_in_db = try LedgerUser.query().filter("id", buyer).first()
+            
+            guard buyer_in_db != nil else {
+                    throw LedgerError.Unauthorized
+            }
+            
+            guard let drinker_array = request.data["drinker_walletid"]?.array else {
+                throw LedgerError.BadRequest
+            }
+    
+            for unknown_drinker in drinker_array {
+
+                guard let drinker = unknown_drinker.string else { throw LedgerError.BadRequest }
+                if drinker.isEmpty { throw LedgerError.BadRequest } /* validate parameter is present but not null */
+                if buyer == drinker { throw LedgerError.BadRequest } /* validate buyer not also drinker */
+                
+                var ledgerRecord = Ledger(ledgeruser_id: buyer_in_db?.id, drinker: drinker, createddate: 0, ledgerentry: .Purchased, numberofdrinks: number_of_drinks)
                 
                 try ledgerRecord.save()
             }
-    
-            catch {
-                throw LedgerError.DatabaseError
-            }
-        }
         
-        return try JSON("buyer")
-    }
-    
-    func version(request: Request) throws -> ResponseRepresentable {
-        
-        if let db = drop.database?.driver as? MySQLDriver {
-            let version = try db.raw("select version()")
-            return try JSON(node: version)
-        } else {
-            throw LedgerError.ServiceUnavailable
+            return try JSON(node: buyer_in_db)
         }
-    }
-    
-    func healthcheck(request: Request) throws -> ResponseRepresentable {
-        let version = VERSION
-        return try JSON(node: "Vapor version \(version)")
-    }
-    
-    func count(request: Request) throws -> ResponseRepresentable {
-
-        guard let chars_to_count = request.data["characters"]?.string else {
-            throw LedgerError.BadRequest
-        }
-        
- //       let validated_chars_to_count = try chars_to_count.validated(by: Count.min(5) && OnlyAlphanumeric.self)
-
-        return "The string is: \(chars_to_count.count) characters long"
     }
 }
