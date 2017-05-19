@@ -3,6 +3,7 @@ import VaporMySQL
 import Foundation
 import Fluent
 import Auth
+import VaporSecurityHeaders
 
 /* initalize droplet */
 let drop = Droplet()
@@ -12,8 +13,12 @@ try drop.addProvider(VaporMySQL.Provider.self)
 /*********************************************/
 
 /* middleware setup */
+let securityHeaders = SecurityHeaders()
+drop.middleware.insert(securityHeaders, at: 0)
+
 drop.addConfigurable(middleware: AuthMiddleware(user: LedgerUser.self), name: "auth")
 drop.middleware.append(VersionMiddleware())
+drop.middleware.append(NonceMiddleware())
 drop.middleware.append(LedgerErrorMiddleware())
 /*********************************************/
 
@@ -25,7 +30,6 @@ user.addRoutes(drop: drop)
 let user_auth = UserController_Auth()
 user_auth.addRoutes(drop: drop)
 /*********************************************/
-
 
 /* add catch-all drop requests */
 drop.get("/") { request in

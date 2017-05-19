@@ -15,9 +15,19 @@ final class UserController_Auth {
         let protect = ProtectMiddleware(error: error)
         let protected_service = personal.grouped(protect)
         protected_service.get("profile", handler: profileView)
-
+        protected_service.get("healthcheck", handler: healthCheck)
     }
 
+    func healthCheck(request: Request) throws -> ResponseRepresentable {
+        
+        guard let unverified_nonce = request.headers["Nonce"]?.int
+            else {
+                throw LedgerError.BadRequest
+        }
+
+        return try JSON(node: "Success. You sent \(unverified_nonce)")
+    }
+    
     func profileView(request: Request) throws -> ResponseRepresentable {
         
         do {

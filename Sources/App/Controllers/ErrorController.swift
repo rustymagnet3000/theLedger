@@ -15,3 +15,18 @@ enum LedgerError: Error {
 enum ValidatorError: Error {
     case BadPassword
 }
+
+
+enum AuthorizationError: Error {
+    case badCookie
+    case badNonce
+    
+    func description() -> String {
+        switch self {
+        case .badCookie:
+            return "bad Cookie"
+        case .badNonce:
+            return "bad Nonce"
+        }
+    }
+}
